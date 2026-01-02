@@ -1,0 +1,25 @@
+{
+  "name": "opencode-time-tracking",
+  "version": "1.0.0",
+  "description": "Automatic time tracking plugin for OpenCode - tracks session duration and tool usage to CSV",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "keywords": [
+    "opencode",
+    "plugin",
+    "time-tracking",
+    "jira"
+  ],
+  "author": "TechDivision",
+  "license": "MIT",
+  "dependencies": {
+    "@opencode-ai/plugin": "^1.0.223"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "bun": ">=1.0.0"
+  }
+}
