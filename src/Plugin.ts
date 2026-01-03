@@ -72,5 +72,3 @@ export const plugin: Plugin = async ({
 
   return hooks
 }
-
-export default plugin
