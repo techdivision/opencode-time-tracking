@@ -47,6 +47,14 @@ export const plugin: Plugin = async ({
   const config = await ConfigLoader.load(directory)
 
   if (!config) {
+    await client.tui.showToast({
+      body: {
+        message:
+          "Time Tracking: No config found. Run /init-time-tracking to create one.",
+        variant: "warning",
+      },
+    })
+
     return {}
   }
 
