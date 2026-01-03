@@ -206,8 +206,42 @@ Plugin config file: `.opencode/time-tracking.json`
 }
 ```
 
-## Git Workflow
+## Git Workflow (Gitflow)
 
-- Main branch: `main`
-- Development branch: `develop`
-- Push to remote: `git push -u origin develop`
+This project follows **Gitflow**:
+
+- **main**: Production-ready releases only
+- **develop**: Integration branch for features
+- Feature branches: `feature/<name>` (branch from `develop`)
+- Release branches: `release/<version>` (branch from `develop`)
+- Hotfix branches: `hotfix/<name>` (branch from `main`)
+
+### Release Process
+
+**CRITICAL: When creating a new release, ALWAYS:**
+
+1. Update `version` in `package.json`
+2. Commit the version bump
+3. Merge `develop` into `main`
+4. Create annotated tag: `git tag -a vX.Y.Z -m "vX.Y.Z - Description"`
+5. Push both branches and tag
+
+```bash
+# Example release workflow
+git checkout develop
+# ... make changes ...
+git add . && git commit -m "Your changes"
+
+# Update version in package.json
+# Edit package.json: "version": "X.Y.Z"
+git add package.json && git commit -m "Bump version to X.Y.Z"
+
+# Merge to main and tag
+git checkout main
+git merge develop
+git tag -a vX.Y.Z -m "vX.Y.Z - Release description"
+
+# Push everything
+git push origin main develop
+git push origin vX.Y.Z
+```
