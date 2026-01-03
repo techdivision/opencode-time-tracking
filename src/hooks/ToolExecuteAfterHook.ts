@@ -1,11 +1,11 @@
 import type { SessionManager } from "../services/SessionManager"
-import type { GitUtils } from "../utils/GitUtils"
+import type { TicketExtractor } from "../services/TicketExtractor"
 import type { ToolExecuteAfterInput } from "../types/ToolExecuteAfterInput"
 import type { ToolExecuteAfterOutput } from "../types/ToolExecuteAfterOutput"
 
 export function createToolExecuteAfterHook(
   sessionManager: SessionManager,
-  gitUtils: GitUtils
+  ticketExtractor: TicketExtractor
 ) {
   return async (
     input: ToolExecuteAfterInput,
@@ -14,11 +14,16 @@ export function createToolExecuteAfterHook(
     const { tool, sessionID } = input
     const { title, metadata } = output
 
+    // Create session if it doesn't exist
     if (!sessionManager.has(sessionID)) {
-      const ticket = await gitUtils.extractTicket()
-      sessionManager.create(sessionID, ticket)
+      sessionManager.create(sessionID, null)
     }
 
+    // Extract and update ticket on every tool call
+    const ticket = await ticketExtractor.extract(sessionID)
+    sessionManager.updateTicket(sessionID, ticket)
+
+    // Extract file info from metadata
     let file: string | undefined
     if (metadata) {
       const meta = metadata as Record<string, unknown>

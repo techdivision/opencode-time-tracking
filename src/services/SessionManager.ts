@@ -51,4 +51,11 @@ export class SessionManager {
       session.tokenUsage.cacheWrite += tokens.cacheWrite
     }
   }
+
+  updateTicket(sessionID: string, ticket: string | null): void {
+    const session = this.sessions.get(sessionID)
+    if (session && ticket) {
+      session.ticket = ticket
+    }
+  }
 }
