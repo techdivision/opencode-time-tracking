@@ -112,6 +112,12 @@ export function createEventHook(
         return
       }
 
+      // Delete session immediately to prevent duplicate processing
+      sessionManager.delete(sessionID)
+
+      // Debug: Log if we're processing this session
+      console.log(`[TimeTracking] Processing session.idle for session ${sessionID}, activities: ${session.activities.length}`)
+
       const endTime = Date.now()
       const durationSeconds = Math.round((endTime - session.startTime) / 1000)
 
@@ -155,9 +161,7 @@ export function createEventHook(
             variant: "error",
           },
         })
-      }
-
-      sessionManager.delete(sessionID)
+        }
     }
   }
 }
