@@ -60,10 +60,10 @@ async function extractSummaryTitle(
  * @returns The event hook function
  *
  * @remarks
- * Handles two types of events:
- *
- * 1. **message.part.updated** - Tracks token usage from step-finish parts
- * 2. **session.idle / session.deleted** - Finalizes and exports the session
+  * Handles two types of events:
+   *
+   * 1. **message.part.updated** - Tracks token usage from step-finish parts
+   * 2. **session.idle** - Finalizes and exports the session
  *
  * @example
  * ```typescript
@@ -96,8 +96,8 @@ export function createEventHook(
       return
     }
 
-    // Handle session end events
-    if (event.type === "session.idle" || event.type === "session.deleted") {
+    // Handle session idle events (only log on idle, not on deleted)
+    if (event.type === "session.idle") {
       const props = event.properties as { sessionID?: string }
       const sessionID = props.sessionID
 
