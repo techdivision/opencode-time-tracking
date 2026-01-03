@@ -1,8 +1,42 @@
+/**
+ * @fileoverview Generates human-readable descriptions from activity data.
+ */
+
 import type { ActivityData } from "../types/ActivityData"
 
+/**
+ * Generates human-readable descriptions from tool activities.
+ *
+ * @remarks
+ * Creates descriptions summarizing what tools were used and which files
+ * were affected during a session.
+ */
 export class DescriptionGenerator {
+  /**
+   * Generates a human-readable description of activities.
+   *
+   * @param activities - Array of activity data from the session
+   * @returns A formatted description string
+   *
+   * @remarks
+   * Groups activities by type:
+   * - File edits (edit + write tools)
+   * - File reads
+   * - Commands (bash)
+   * - Searches (glob + grep)
+   *
+   * Also includes file names if 5 or fewer files were touched.
+   *
+   * @example
+   * ```typescript
+   * const desc = DescriptionGenerator.generate(activities)
+   * // Returns: "3 file edit(s), 2 file read(s) - Files: index.ts, utils.ts"
+   * ```
+   */
   static generate(activities: ActivityData[]): string {
-    if (activities.length === 0) return "No activities tracked"
+    if (activities.length === 0) {
+      return "No activities tracked"
+    }
 
     const toolCounts = activities.reduce(
       (acc, a) => {
@@ -13,6 +47,7 @@ export class DescriptionGenerator {
     )
 
     const filesWorkedOn = new Set<string>()
+
     for (const activity of activities) {
       if (activity.file) {
         const fileName = activity.file.split("/").pop() || activity.file
@@ -27,12 +62,15 @@ export class DescriptionGenerator {
         `${(toolCounts.edit || 0) + (toolCounts.write || 0)} file edit(s)`
       )
     }
+
     if (toolCounts.read) {
       mainActivities.push(`${toolCounts.read} file read(s)`)
     }
+
     if (toolCounts.bash) {
       mainActivities.push(`${toolCounts.bash} command(s)`)
     }
+
     if (toolCounts.glob || toolCounts.grep) {
       mainActivities.push(
         `${(toolCounts.glob || 0) + (toolCounts.grep || 0)} search(es)`
@@ -53,6 +91,18 @@ export class DescriptionGenerator {
     return description
   }
 
+  /**
+   * Generates a compact tool usage summary.
+   *
+   * @param activities - Array of activity data from the session
+   * @returns A compact summary string showing tool counts
+   *
+   * @example
+   * ```typescript
+   * const summary = DescriptionGenerator.generateToolSummary(activities)
+   * // Returns: "read(5x), edit(3x), bash(2x)"
+   * ```
+   */
   static generateToolSummary(activities: ActivityData[]): string {
     const toolCounts = activities.reduce(
       (acc, a) => {
