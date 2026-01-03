@@ -77,9 +77,6 @@ export function createEventHook(
   csvWriter: CsvWriter,
   client: OpencodeClient
 ) {
-  // Track sessions that are currently being processed to prevent duplicates
-  const processingSessions = new Set<string>()
-
   return async ({ event }: { event: Event }): Promise<void> => {
     // Track token usage from step-finish events
     if (event.type === "message.part.updated") {
@@ -108,32 +105,12 @@ export function createEventHook(
         return
       }
 
-      // Debug: Log all session.idle events
-      console.log(`[TimeTracking] ${new Date().toISOString()} Received session.idle for session ${sessionID}, processingSessions size before: ${processingSessions.size}`)
-
-      // Prevent duplicate processing if this session is already being handled
-      if (processingSessions.has(sessionID)) {
-        console.log(`[TimeTracking] ${new Date().toISOString()} Skipping duplicate session.idle for session ${sessionID}`)
-        return
-      }
-
-      // Mark this session as being processed
-      processingSessions.add(sessionID)
-      console.log(`[TimeTracking] ${new Date().toISOString()} Added session ${sessionID} to processingSessions, size now: ${processingSessions.size}`)
-
       const session = sessionManager.get(sessionID)
 
       if (!session || session.activities.length === 0) {
         sessionManager.delete(sessionID)
-        processingSessions.delete(sessionID)
         return
       }
-
-      // Delete session immediately to prevent duplicate processing
-      sessionManager.delete(sessionID)
-
-      // Debug: Log if we're processing this session
-      console.log(`[TimeTracking] ${new Date().toISOString()} Processing session.idle for session ${sessionID}, activities: ${session.activities.length}, processingSessions: [${Array.from(processingSessions).join(', ')}]`)
 
       const endTime = Date.now()
       const durationSeconds = Math.round((endTime - session.startTime) / 1000)
@@ -180,8 +157,7 @@ export function createEventHook(
         })
         }
 
-        // Remove from processing set when done
-        processingSessions.delete(sessionID)
-      }
+      sessionManager.delete(sessionID)
+    }
   }
 }
