@@ -1,4 +1,4 @@
-# opencode-time-tracking
+# @techdivision/opencode-time-tracking
 
 Automatic time tracking plugin for OpenCode. Tracks session duration and tool usage, writing entries to a CSV file compatible with Jira worklog sync.
 
@@ -8,7 +8,7 @@ Add to your `opencode.json`:
 
 ```json
 {
-  "plugin": ["opencode-time-tracking"]
+  "plugin": ["@techdivision/opencode-time-tracking"]
 }
 ```
 
@@ -42,4 +42,3 @@ id,start_date,end_date,user,ticket_name,issue_key,account_key,start_time,end_tim
 | Event | When triggered |
 |-------|----------------|
 | `session.idle` | After each complete AI response (including all tool calls) |
-| `session.deleted` | When a session is explicitly deleted |
