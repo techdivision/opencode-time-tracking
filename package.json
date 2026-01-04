@@ -1,9 +1,13 @@
 {
   "name": "@techdivision/opencode-time-tracking",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Automatic time tracking plugin for OpenCode - tracks session duration and tool usage to CSV",
   "main": "src/Plugin.ts",
   "types": "src/Plugin.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/techdivision/opencode-time-tracking"
+  },
   "keywords": [
     "opencode",
     "plugin",
