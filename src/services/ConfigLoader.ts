@@ -2,7 +2,10 @@
  * @fileoverview Configuration loader for the time tracking plugin.
  */
 
-import type { TimeTrackingConfig } from "../types/TimeTrackingConfig"
+import type {
+  OpencodeProjectConfig,
+  TimeTrackingConfig,
+} from "../types/TimeTrackingConfig"
 
 import "../types/Bun"
 
@@ -10,8 +13,8 @@ import "../types/Bun"
  * Loads the plugin configuration from the project directory.
  *
  * @remarks
- * The configuration file is expected at `.opencode/time-tracking.json`
- * within the project directory.
+ * The configuration file is expected at `.opencode/opencode-project.json`
+ * within the project directory, with a `time_tracking` section.
  */
 export class ConfigLoader {
   /**
@@ -29,13 +32,17 @@ export class ConfigLoader {
    * ```
    */
   static async load(directory: string): Promise<TimeTrackingConfig | null> {
-    const configPath = `${directory}/.opencode/time-tracking.json`
+    const configPath = `${directory}/.opencode/opencode-project.json`
 
     try {
       const file = Bun.file(configPath)
 
       if (await file.exists()) {
-        return (await file.json()) as TimeTrackingConfig
+        const projectConfig = (await file.json()) as OpencodeProjectConfig
+
+        if (projectConfig.time_tracking) {
+          return projectConfig.time_tracking
+        }
       }
 
       return null

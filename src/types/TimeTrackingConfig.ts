@@ -3,7 +3,7 @@
  */
 
 /**
- * Plugin configuration loaded from `.opencode/time-tracking.json`.
+ * Time tracking configuration from `.opencode/opencode-project.json`.
  */
 export interface TimeTrackingConfig {
   /**
@@ -22,4 +22,15 @@ export interface TimeTrackingConfig {
 
   /** Default Jira account key for time entries */
   default_account_key: string
+}
+
+/**
+ * OpenCode project configuration structure.
+ */
+export interface OpencodeProjectConfig {
+  /** JSON Schema reference */
+  $schema?: string
+
+  /** Time tracking configuration */
+  time_tracking?: TimeTrackingConfig
 }

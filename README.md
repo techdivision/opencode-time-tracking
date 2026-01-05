@@ -14,13 +14,16 @@ Add to your `opencode.json`:
 
 ## Configuration
 
-Create `.opencode/time-tracking.json` in your project:
+Add the `time_tracking` section to your `.opencode/opencode-project.json`:
 
 ```json
 {
-  "csv_file": "~/time_tracking/time-tracking.csv",
-  "user_email": "your@email.com",
-  "default_account_key": "YOUR_ACCOUNT_KEY"
+  "$schema": "https://raw.githubusercontent.com/techdivision/opencode-plugins/main/schemas/opencode-project.json",
+  "time_tracking": {
+    "csv_file": "~/time_tracking/time-tracking.csv",
+    "user_email": "your@email.com",
+    "default_account_key": "YOUR_ACCOUNT_KEY"
+  }
 }
 ```
 
