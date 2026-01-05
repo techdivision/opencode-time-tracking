@@ -3,6 +3,7 @@
  */
 
 import type { ActivityData } from "./ActivityData"
+import type { ModelInfo } from "./ModelInfo"
 import type { TokenUsage } from "./TokenUsage"
 
 /**
@@ -20,4 +21,7 @@ export interface SessionData {
 
   /** Cumulative token usage for the session */
   tokenUsage: TokenUsage
+
+  /** Model used in this session, or `null` if not detected */
+  model: ModelInfo | null
 }

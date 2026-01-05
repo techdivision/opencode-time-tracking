@@ -28,4 +28,12 @@ export interface CsvEntryData {
 
   /** Token consumption statistics */
   tokenUsage: TokenUsage
+
+  /**
+   * Model identifier in format `providerID/modelID`.
+   *
+   * @remarks
+   * Examples: `anthropic/claude-opus-4`, `openai/gpt-5`
+   */
+  model: string | null
 }

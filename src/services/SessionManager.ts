@@ -3,6 +3,7 @@
  */
 
 import type { ActivityData } from "../types/ActivityData"
+import type { ModelInfo } from "../types/ModelInfo"
 import type { SessionData } from "../types/SessionData"
 import type { TokenUsage } from "../types/TokenUsage"
 
@@ -61,6 +62,7 @@ export class SessionManager {
         cacheRead: 0,
         cacheWrite: 0,
       },
+      model: null,
     }
 
     this.sessions.set(sessionID, session)
@@ -124,6 +126,24 @@ export class SessionManager {
 
     if (session && ticket) {
       session.ticket = ticket
+    }
+  }
+
+  /**
+   * Sets the model for a session.
+   *
+   * @param sessionID - The OpenCode session identifier
+   * @param model - The model information
+   *
+   * @remarks
+   * Only sets the model if it hasn't been set yet.
+   * The first model detected in a session is used.
+   */
+  setModel(sessionID: string, model: ModelInfo): void {
+    const session = this.sessions.get(sessionID)
+
+    if (session && !session.model) {
+      session.model = model
     }
   }
 }

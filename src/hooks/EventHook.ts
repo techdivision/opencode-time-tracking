@@ -2,7 +2,7 @@
  * @fileoverview Event hook for session lifecycle and token tracking.
  */
 
-import type { Event } from "@opencode-ai/sdk"
+import type { AssistantMessage, Event, Message } from "@opencode-ai/sdk"
 
 import type { CsvWriter } from "../services/CsvWriter"
 import type { SessionManager } from "../services/SessionManager"
@@ -11,6 +11,13 @@ import type { MessageWithParts } from "../types/MessageWithParts"
 import type { OpencodeClient } from "../types/OpencodeClient"
 
 import { DescriptionGenerator } from "../utils/DescriptionGenerator"
+
+/**
+ * Properties for message.updated events.
+ */
+interface MessageUpdatedProperties {
+  info: Message
+}
 
 /**
  * Extracts the summary title from the last user message.
@@ -60,10 +67,11 @@ async function extractSummaryTitle(
  * @returns The event hook function
  *
  * @remarks
- * Handles two types of events:
+ * Handles three types of events:
  *
- * 1. **message.part.updated** - Tracks token usage from step-finish parts
- * 2. **session.idle** - Finalizes and exports the session
+ * 1. **message.updated** - Tracks model from assistant messages
+ * 2. **message.part.updated** - Tracks token usage from step-finish parts
+ * 3. **session.idle** - Finalizes and exports the session
  *
  * @example
  * ```typescript
@@ -78,6 +86,25 @@ export function createEventHook(
   client: OpencodeClient
 ) {
   return async ({ event }: { event: Event }): Promise<void> => {
+    // Track model from assistant messages
+    if (event.type === "message.updated") {
+      const props = event.properties as MessageUpdatedProperties
+      const message = props.info
+
+      if (message.role === "assistant") {
+        const assistantMsg = message as AssistantMessage
+
+        if (assistantMsg.modelID && assistantMsg.providerID) {
+          sessionManager.setModel(assistantMsg.sessionID, {
+            modelID: assistantMsg.modelID,
+            providerID: assistantMsg.providerID,
+          })
+        }
+      }
+
+      return
+    }
+
     // Track token usage from step-finish events
     if (event.type === "message.part.updated") {
       const props = event.properties as MessagePartUpdatedProperties
@@ -129,6 +156,11 @@ export function createEventHook(
         session.tokenUsage.output +
         session.tokenUsage.reasoning
 
+      // Format model as providerID/modelID
+      const modelString = session.model
+        ? `${session.model.providerID}/${session.model.modelID}`
+        : null
+
       try {
         await csvWriter.write({
           ticket: session.ticket,
@@ -138,6 +170,7 @@ export function createEventHook(
           description,
           notes: `Auto-tracked: ${toolSummary}`,
           tokenUsage: session.tokenUsage,
+          model: modelString,
         })
 
         const minutes = Math.round(durationSeconds / 60)
