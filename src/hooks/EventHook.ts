@@ -105,11 +105,17 @@ export function createEventHook(
       return
     }
 
-    // Track token usage from step-finish events
+    // Track token usage and agent from message part events
     if (event.type === "message.part.updated") {
       const props = event.properties as MessagePartUpdatedProperties
       const part = props.part
 
+      // Track agent from agent parts (only first agent is stored)
+      if (part.type === "agent" && part.sessionID && part.name) {
+        sessionManager.setAgent(part.sessionID, part.name)
+      }
+
+      // Track token usage from step-finish events
       if (part.type === "step-finish" && part.sessionID && part.tokens) {
         sessionManager.addTokenUsage(part.sessionID, {
           input: part.tokens.input,
@@ -161,6 +167,9 @@ export function createEventHook(
         ? `${session.model.providerID}/${session.model.modelID}`
         : null
 
+      // Get agent name if available
+      const agentString = session.agent?.name ?? null
+
       try {
         await csvWriter.write({
           ticket: session.ticket,
@@ -171,6 +180,7 @@ export function createEventHook(
           notes: `Auto-tracked: ${toolSummary}`,
           tokenUsage: session.tokenUsage,
           model: modelString,
+          agent: agentString,
         })
 
         const minutes = Math.round(durationSeconds / 60)
