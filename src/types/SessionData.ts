@@ -3,6 +3,7 @@
  */
 
 import type { ActivityData } from "./ActivityData"
+import type { AgentInfo } from "./AgentInfo"
 import type { ModelInfo } from "./ModelInfo"
 import type { TokenUsage } from "./TokenUsage"
 
@@ -24,4 +25,7 @@ export interface SessionData {
 
   /** Model used in this session, or `null` if not detected */
   model: ModelInfo | null
+
+  /** First agent used in this session, or `null` if not detected */
+  agent: AgentInfo | null
 }

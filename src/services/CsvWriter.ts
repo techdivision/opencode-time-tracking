@@ -18,7 +18,7 @@ import "../types/Bun"
  * Compatible with Jira/Tempo time tracking import.
  */
 const CSV_HEADER =
-  "id,start_date,end_date,user,ticket_name,issue_key,account_key,start_time,end_time,duration_seconds,tokens_used,tokens_remaining,story_points,description,notes,model"
+  "id,start_date,end_date,user,ticket_name,issue_key,account_key,start_time,end_time,duration_seconds,tokens_used,tokens_remaining,story_points,description,notes,model,agent"
 
 /**
  * Writes time tracking entries to a CSV file.
@@ -123,6 +123,7 @@ export class CsvWriter {
       CsvFormatter.escape(data.description),
       CsvFormatter.escape(data.notes),
       data.model ?? "",
+      data.agent ?? "",
     ]
 
     const csvLine = fields.map((f) => `"${f}"`).join(",")

@@ -36,4 +36,13 @@ export interface CsvEntryData {
    * Examples: `anthropic/claude-opus-4`, `openai/gpt-5`
    */
   model: string | null
+
+  /**
+   * Agent name that performed the work.
+   *
+   * @remarks
+   * Examples: `@developer`, `@reviewer`
+   * Only the first/primary agent is tracked.
+   */
+  agent: string | null
 }

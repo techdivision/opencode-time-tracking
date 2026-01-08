@@ -3,6 +3,7 @@
  */
 
 import type { ActivityData } from "../types/ActivityData"
+import type { AgentInfo } from "../types/AgentInfo"
 import type { ModelInfo } from "../types/ModelInfo"
 import type { SessionData } from "../types/SessionData"
 import type { TokenUsage } from "../types/TokenUsage"
@@ -63,6 +64,7 @@ export class SessionManager {
         cacheWrite: 0,
       },
       model: null,
+      agent: null,
     }
 
     this.sessions.set(sessionID, session)
@@ -144,6 +146,28 @@ export class SessionManager {
 
     if (session && !session.model) {
       session.model = model
+    }
+  }
+
+  /**
+   * Sets the agent for a session.
+   *
+   * @param sessionID - The OpenCode session identifier
+   * @param agentName - The agent name (e.g., "@developer")
+   *
+   * @remarks
+   * Only sets the agent if it hasn't been set yet.
+   * The first agent detected in a session is used (primary agent).
+   */
+  setAgent(sessionID: string, agentName: string): void {
+    const session = this.sessions.get(sessionID)
+
+    if (session && !session.agent) {
+      const agent: AgentInfo = {
+        name: agentName,
+        timestamp: Date.now(),
+      }
+      session.agent = agent
     }
   }
 }
