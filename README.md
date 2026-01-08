@@ -14,6 +14,8 @@ Add to your `opencode.json`:
 
 ## Configuration
 
+### 1. Project Configuration
+
 Add the `time_tracking` section to your `.opencode/opencode-project.json`:
 
 ```json
@@ -21,11 +23,28 @@ Add the `time_tracking` section to your `.opencode/opencode-project.json`:
   "$schema": "https://raw.githubusercontent.com/techdivision/opencode-plugins/main/schemas/opencode-project.json",
   "time_tracking": {
     "csv_file": "~/time_tracking/time-tracking.csv",
-    "user_email": "your@email.com",
     "default_account_key": "YOUR_ACCOUNT_KEY"
   }
 }
 ```
+
+### 2. User Email (Environment Variable)
+
+Set your user email via the `OPENCODE_USER_EMAIL` environment variable.
+
+Add to your `.env` file (recommended):
+
+```env
+OPENCODE_USER_EMAIL=your@email.com
+```
+
+Or export in your shell:
+
+```bash
+export OPENCODE_USER_EMAIL=your@email.com
+```
+
+If not set, the system username is used as fallback.
 
 ## How it works
 

@@ -25,19 +25,26 @@ import { createToolExecuteAfterHook } from "./hooks/ToolExecuteAfterHook"
  * - Token consumption (input/output/reasoning tokens)
  * - Ticket references (extracted from user messages or todos)
  *
- * Data is exported to a CSV file configured in `.opencode/time-tracking.json`.
+ * Data is exported to a CSV file configured in `.opencode/opencode-project.json`.
  *
  * @param input - Plugin input containing client, directory, and other context
  * @returns Hooks object with event and tool.execute.after handlers
  *
  * @example
  * ```json
- * // .opencode/time-tracking.json
+ * // .opencode/opencode-project.json
  * {
- *   "csv_file": "~/worklogs/time.csv",
- *   "user_email": "user@example.com",
- *   "default_account_key": "ACCOUNT-1"
+ *   "time_tracking": {
+ *     "csv_file": "~/worklogs/time.csv",
+ *     "default_account_key": "ACCOUNT-1"
+ *   }
  * }
+ * ```
+ *
+ * @example
+ * ```bash
+ * # .env - Set user email via environment variable
+ * OPENCODE_USER_EMAIL=user@example.com
  * ```
  */
 export const plugin: Plugin = async ({
@@ -48,7 +55,6 @@ export const plugin: Plugin = async ({
 
   if (!config) {
     // Silently return empty hooks if no config found
-    // Toast notifications don't work during plugin initialization
     return {}
   }
 

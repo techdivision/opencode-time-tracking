@@ -3,9 +3,14 @@
  */
 
 /**
- * Time tracking configuration from `.opencode/opencode-project.json`.
+ * Time tracking configuration as stored in `.opencode/opencode-project.json`.
+ *
+ * @remarks
+ * The `user_email` field is not stored in the JSON file.
+ * It is resolved from `OPENCODE_USER_EMAIL` environment variable
+ * or falls back to the system username.
  */
-export interface TimeTrackingConfig {
+export interface TimeTrackingJsonConfig {
   /**
    * Path to the CSV output file.
    *
@@ -17,11 +22,26 @@ export interface TimeTrackingConfig {
    */
   csv_file: string
 
-  /** Email address of the user for the worklog */
-  user_email: string
-
   /** Default Jira account key for time entries */
   default_account_key: string
+}
+
+/**
+ * Resolved time tracking configuration used at runtime.
+ *
+ * @remarks
+ * Extends `TimeTrackingJsonConfig` with the resolved `user_email` field.
+ */
+export interface TimeTrackingConfig extends TimeTrackingJsonConfig {
+  /**
+   * User email for the worklog.
+   *
+   * @remarks
+   * Resolved from (in order of priority):
+   * 1. `OPENCODE_USER_EMAIL` environment variable
+   * 2. System username (via `os.userInfo().username`)
+   */
+  user_email: string
 }
 
 /**
@@ -32,5 +52,5 @@ export interface OpencodeProjectConfig {
   $schema?: string
 
   /** Time tracking configuration */
-  time_tracking?: TimeTrackingConfig
+  time_tracking?: TimeTrackingJsonConfig
 }
