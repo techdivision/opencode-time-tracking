@@ -17,15 +17,52 @@ import "../types/Bun"
 const ENV_USER_EMAIL = "OPENCODE_USER_EMAIL"
 
 /**
+ * Loads a value from a .env file in the specified directory.
+ *
+ * @param directory - The directory containing the .env file
+ * @param key - The environment variable key to look for
+ * @returns The value if found, or `null` if not found
+ *
+ * @internal
+ */
+async function loadEnvValue(
+  directory: string,
+  key: string
+): Promise<string | null> {
+  const envPath = `${directory}/.env`
+
+  try {
+    const file = Bun.file(envPath)
+
+    if (await file.exists()) {
+      const content = await file.text()
+      // Match KEY=value, handling optional quotes
+      const regex = new RegExp(`^${key}=(.*)$`, "m")
+      const match = content.match(regex)
+
+      if (match) {
+        // Remove surrounding quotes (single or double) and trim
+        return match[1].trim().replace(/^["']|["']$/g, "")
+      }
+    }
+
+    return null
+  } catch {
+    return null
+  }
+}
+
+/**
  * Loads the plugin configuration from the project directory.
  *
  * @remarks
  * The configuration file is expected at `.opencode/opencode-project.json`
  * within the project directory, with a `time_tracking` section.
  *
- * The `user_email` is resolved from:
- * 1. `OPENCODE_USER_EMAIL` environment variable
- * 2. System username (fallback)
+ * The `user_email` is resolved from (in order of priority):
+ * 1. `OPENCODE_USER_EMAIL` system environment variable
+ * 2. `OPENCODE_USER_EMAIL` from project `.env` file
+ * 3. System username (fallback)
  */
 export class ConfigLoader {
   /**
@@ -39,7 +76,7 @@ export class ConfigLoader {
    * const config = await ConfigLoader.load("/path/to/project")
    * if (config) {
    *   console.log(config.csv_file)
-   *   console.log(config.user_email) // Resolved from ENV or system username
+   *   console.log(config.user_email) // Resolved from ENV, .env file, or system username
    * }
    * ```
    */
@@ -55,8 +92,13 @@ export class ConfigLoader {
         if (projectConfig.time_tracking) {
           const jsonConfig = projectConfig.time_tracking
 
-          // Resolve user_email from environment variable or fallback to system username
-          const userEmail = process.env[ENV_USER_EMAIL] || userInfo().username
+          // Resolve user_email with fallback chain:
+          // 1. System environment variable
+          // 2. Project .env file
+          // 3. System username
+          const envValue = await loadEnvValue(directory, ENV_USER_EMAIL)
+          const userEmail =
+            process.env[ENV_USER_EMAIL] || envValue || userInfo().username
 
           return {
             ...jsonConfig,
