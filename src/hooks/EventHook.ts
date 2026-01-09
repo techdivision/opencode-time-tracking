@@ -86,7 +86,7 @@ export function createEventHook(
   client: OpencodeClient
 ) {
   return async ({ event }: { event: Event }): Promise<void> => {
-    // Track model from assistant messages
+    // Track model and agent from assistant messages
     if (event.type === "message.updated") {
       const props = event.properties as MessageUpdatedProperties
       const message = props.info
@@ -94,26 +94,27 @@ export function createEventHook(
       if (message.role === "assistant") {
         const assistantMsg = message as AssistantMessage
 
+        // Track model
         if (assistantMsg.modelID && assistantMsg.providerID) {
           sessionManager.setModel(assistantMsg.sessionID, {
             modelID: assistantMsg.modelID,
             providerID: assistantMsg.providerID,
           })
         }
+
+        // Track agent from mode field
+        if (assistantMsg.mode) {
+          sessionManager.setAgent(assistantMsg.sessionID, assistantMsg.mode)
+        }
       }
 
       return
     }
 
-    // Track token usage and agent from message part events
+    // Track token usage from message part events
     if (event.type === "message.part.updated") {
       const props = event.properties as MessagePartUpdatedProperties
       const part = props.part
-
-      // Track agent from agent parts (only first agent is stored)
-      if (part.type === "agent" && part.sessionID && part.name) {
-        sessionManager.setAgent(part.sessionID, part.name)
-      }
 
       // Track token usage from step-finish events
       if (part.type === "step-finish" && part.sessionID && part.tokens) {
