@@ -82,6 +82,27 @@ export class SessionManager {
   }
 
   /**
+   * Retrieves and deletes a session atomically.
+   *
+   * @param sessionID - The OpenCode session identifier
+   * @returns The session data, or `undefined` if not found
+   *
+   * @remarks
+   * Prevents race conditions when multiple idle events fire
+   * for the same session. The session is removed immediately
+   * after retrieval to ensure it can only be processed once.
+   */
+  getAndDelete(sessionID: string): SessionData | undefined {
+    const session = this.sessions.get(sessionID)
+
+    if (session) {
+      this.sessions.delete(sessionID)
+    }
+
+    return session
+  }
+
+  /**
    * Adds a tool activity to a session.
    *
    * @param sessionID - The OpenCode session identifier

@@ -35,7 +35,7 @@ export class DescriptionGenerator {
    */
   static generate(activities: ActivityData[]): string {
     if (activities.length === 0) {
-      return "No activities tracked"
+      return "Chat session (no tool calls)"
     }
 
     const toolCounts = activities.reduce(
