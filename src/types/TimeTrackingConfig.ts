@@ -2,6 +2,9 @@
  * @fileoverview Configuration type for the time tracking plugin.
  */
 
+import type { AgentDefaultConfig } from "./AgentDefaultConfig"
+import type { GlobalDefaultConfig } from "./GlobalDefaultConfig"
+
 /**
  * Time tracking configuration as stored in `.opencode/opencode-project.json`.
  *
@@ -24,6 +27,24 @@ export interface TimeTrackingJsonConfig {
 
   /** Default Jira account key for time entries */
   default_account_key: string
+
+  /**
+   * Agent-specific default tickets.
+   *
+   * @remarks
+   * Map of agent names (e.g., "@developer", "@reviewer") to their
+   * default ticket configuration. Used when no ticket is found in context.
+   */
+  agent_defaults?: Record<string, AgentDefaultConfig>
+
+  /**
+   * Global fallback ticket configuration.
+   *
+   * @remarks
+   * Used when no ticket is found in context and no agent-specific
+   * default is configured.
+   */
+  global_default?: GlobalDefaultConfig
 }
 
 /**

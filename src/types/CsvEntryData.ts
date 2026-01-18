@@ -45,4 +45,15 @@ export interface CsvEntryData {
    * Only the first/primary agent is tracked.
    */
   agent: string | null
+
+  /**
+   * Tempo account key for the worklog entry.
+   *
+   * @remarks
+   * Resolved from (in order of priority):
+   * 1. Agent-specific account_key
+   * 2. Global default account_key
+   * 3. default_account_key from config
+   */
+  accountKey: string
 }

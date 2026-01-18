@@ -6,6 +6,7 @@ import type { AssistantMessage, Event, Message } from "@opencode-ai/sdk"
 
 import type { CsvWriter } from "../services/CsvWriter"
 import type { SessionManager } from "../services/SessionManager"
+import type { TicketResolver } from "../services/TicketResolver"
 import type { MessagePartUpdatedProperties } from "../types/MessagePartUpdatedProperties"
 import type { MessageWithParts } from "../types/MessageWithParts"
 import type { OpencodeClient } from "../types/OpencodeClient"
@@ -83,7 +84,8 @@ async function extractSummaryTitle(
 export function createEventHook(
   sessionManager: SessionManager,
   csvWriter: CsvWriter,
-  client: OpencodeClient
+  client: OpencodeClient,
+  ticketResolver: TicketResolver
 ) {
   return async ({ event }: { event: Event }): Promise<void> => {
     // Track model and agent from assistant messages
@@ -171,9 +173,13 @@ export function createEventHook(
       // Get agent name if available
       const agentString = session.agent?.name ?? null
 
+      // Resolve ticket and account key with fallback hierarchy
+      const resolved = await ticketResolver.resolve(sessionID, agentString)
+
       try {
         await csvWriter.write({
-          ticket: session.ticket,
+          ticket: resolved.ticket,
+          accountKey: resolved.accountKey,
           startTime: session.startTime,
           endTime,
           durationSeconds,
@@ -188,7 +194,7 @@ export function createEventHook(
 
         await client.tui.showToast({
           body: {
-            message: `Time tracked: ${minutes} min, ${totalTokens} tokens${session.ticket ? ` for ${session.ticket}` : ""}`,
+            message: `Time tracked: ${minutes} min, ${totalTokens} tokens${resolved.ticket ? ` for ${resolved.ticket}` : ""}`,
             variant: "success",
           },
         })

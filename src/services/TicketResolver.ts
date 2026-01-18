@@ -1,0 +1,112 @@
+/**
+ * @fileoverview Resolves tickets and account keys with fallback hierarchy.
+ */
+
+import type { ResolvedTicketInfo } from "../types/ResolvedTicketInfo"
+import type { TimeTrackingConfig } from "../types/TimeTrackingConfig"
+import type { TicketExtractor } from "./TicketExtractor"
+
+/**
+ * Resolves tickets and account keys using fallback hierarchy.
+ *
+ * @remarks
+ * Ticket fallback hierarchy:
+ * 1. Context ticket (from messages/todos)
+ * 2. Agent default (from config)
+ * 3. Global default (from config)
+ * 4. `null` (no ticket found)
+ *
+ * Account key fallback hierarchy:
+ * 1. Agent-specific account_key
+ * 2. Global default account_key
+ * 3. default_account_key from config
+ */
+export class TicketResolver {
+  /** Plugin configuration */
+  private config: TimeTrackingConfig
+
+  /** Ticket extractor for context-based lookup */
+  private ticketExtractor: TicketExtractor
+
+  /**
+   * Creates a new ticket resolver instance.
+   *
+   * @param config - The plugin configuration
+   * @param ticketExtractor - The ticket extractor instance
+   */
+  constructor(config: TimeTrackingConfig, ticketExtractor: TicketExtractor) {
+    this.config = config
+    this.ticketExtractor = ticketExtractor
+  }
+
+  /**
+   * Resolves ticket and account key for a session.
+   *
+   * @param sessionID - The OpenCode session identifier
+   * @param agentName - The agent name (e.g., "@developer"), or `null`
+   * @returns Resolved ticket info with ticket and accountKey
+   *
+   * @example
+   * ```typescript
+   * const resolved = await ticketResolver.resolve("session-123", "@developer")
+   * // Returns { ticket: "PROJ-123", accountKey: "TD_DEV" }
+   * ```
+   */
+  async resolve(
+    sessionID: string,
+    agentName: string | null
+  ): Promise<ResolvedTicketInfo> {
+    // 1. Try context ticket
+    const contextTicket = await this.ticketExtractor.extract(sessionID)
+
+    if (contextTicket) {
+      return {
+        ticket: contextTicket,
+        accountKey: this.resolveAccountKey(agentName),
+      }
+    }
+
+    // 2. Try agent default
+    if (agentName && this.config.agent_defaults?.[agentName]) {
+      return {
+        ticket: this.config.agent_defaults[agentName].issue_key,
+        accountKey: this.resolveAccountKey(agentName),
+      }
+    }
+
+    // 3. Try global default
+    if (this.config.global_default) {
+      return {
+        ticket: this.config.global_default.issue_key,
+        accountKey: this.resolveAccountKey(agentName),
+      }
+    }
+
+    // 4. No ticket found
+    return {
+      ticket: null,
+      accountKey: this.resolveAccountKey(agentName),
+    }
+  }
+
+  /**
+   * Resolves account key using fallback hierarchy.
+   *
+   * @param agentName - The agent name, or `null`
+   * @returns Resolved Tempo account key
+   */
+  private resolveAccountKey(agentName: string | null): string {
+    // 1. Agent-specific account_key
+    if (agentName && this.config.agent_defaults?.[agentName]?.account_key) {
+      return this.config.agent_defaults[agentName].account_key!
+    }
+
+    // 2. Global default account_key
+    if (this.config.global_default?.account_key) {
+      return this.config.global_default.account_key
+    }
+
+    // 3. Config default
+    return this.config.default_account_key
+  }
+}
