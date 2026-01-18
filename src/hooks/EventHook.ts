@@ -96,6 +96,11 @@ export function createEventHook(
       if (message.role === "assistant") {
         const assistantMsg = message as AssistantMessage
 
+        // Ensure session exists for tracking
+        if (!sessionManager.has(assistantMsg.sessionID)) {
+          sessionManager.create(assistantMsg.sessionID, null)
+        }
+
         // Track model
         if (assistantMsg.modelID && assistantMsg.providerID) {
           sessionManager.setModel(assistantMsg.sessionID, {
@@ -120,6 +125,11 @@ export function createEventHook(
 
       // Track token usage from step-finish events
       if (part.type === "step-finish" && part.sessionID && part.tokens) {
+        // Ensure session exists for token tracking
+        if (!sessionManager.has(part.sessionID)) {
+          sessionManager.create(part.sessionID, null)
+        }
+
         sessionManager.addTokenUsage(part.sessionID, {
           input: part.tokens.input,
           output: part.tokens.output,
@@ -141,10 +151,17 @@ export function createEventHook(
         return
       }
 
-      const session = sessionManager.get(sessionID)
+      // Atomically get and delete to prevent race conditions
+      const session = sessionManager.getAndDelete(sessionID)
 
-      if (!session || session.activities.length === 0) {
-        sessionManager.delete(sessionID)
+      // Check if session has any trackable data
+      const hasActivity = (session?.activities.length ?? 0) > 0
+      const hasTokens =
+        (session?.tokenUsage.input ?? 0) +
+          (session?.tokenUsage.output ?? 0) >
+        0
+
+      if (!session || (!hasActivity && !hasTokens)) {
         return
       }
 
@@ -205,9 +222,7 @@ export function createEventHook(
             variant: "error",
           },
         })
-        }
-
-      sessionManager.delete(sessionID)
+      }
     }
   }
 }
