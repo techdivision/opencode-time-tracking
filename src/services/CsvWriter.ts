@@ -113,7 +113,7 @@ export class CsvWriter {
       this.config.user_email,
       "",
       data.ticket ?? "",
-      this.config.default_account_key,
+      data.accountKey,
       CsvFormatter.formatTime(data.startTime),
       CsvFormatter.formatTime(data.endTime),
       data.durationSeconds.toString(),

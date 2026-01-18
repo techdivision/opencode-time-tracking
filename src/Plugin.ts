@@ -13,6 +13,7 @@ import { ConfigLoader } from "./services/ConfigLoader"
 import { CsvWriter } from "./services/CsvWriter"
 import { SessionManager } from "./services/SessionManager"
 import { TicketExtractor } from "./services/TicketExtractor"
+import { TicketResolver } from "./services/TicketResolver"
 import { createEventHook } from "./hooks/EventHook"
 import { createToolExecuteAfterHook } from "./hooks/ToolExecuteAfterHook"
 
@@ -61,13 +62,14 @@ export const plugin: Plugin = async ({
   const sessionManager = new SessionManager()
   const csvWriter = new CsvWriter(config, directory)
   const ticketExtractor = new TicketExtractor(client)
+  const ticketResolver = new TicketResolver(config, ticketExtractor)
 
   const hooks: Hooks = {
     "tool.execute.after": createToolExecuteAfterHook(
       sessionManager,
       ticketExtractor
     ),
-    event: createEventHook(sessionManager, csvWriter, client),
+    event: createEventHook(sessionManager, csvWriter, client, ticketResolver),
   }
 
   return hooks
