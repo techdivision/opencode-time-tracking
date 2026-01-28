@@ -45,6 +45,15 @@ export interface TimeTrackingJsonConfig {
    * default is configured.
    */
   global_default?: GlobalDefaultConfig
+
+  /**
+   * List of agent names to ignore for time tracking.
+   *
+   * @remarks
+   * Sessions triggered by these agents will not be exported to CSV.
+   * Agent names should include the "@" prefix (e.g., "@internal").
+   */
+  ignored_agents?: string[]
 }
 
 /**

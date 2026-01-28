@@ -10,6 +10,7 @@ import type { TicketResolver } from "../services/TicketResolver"
 import type { MessagePartUpdatedProperties } from "../types/MessagePartUpdatedProperties"
 import type { MessageWithParts } from "../types/MessageWithParts"
 import type { OpencodeClient } from "../types/OpencodeClient"
+import type { TimeTrackingConfig } from "../types/TimeTrackingConfig"
 
 import { DescriptionGenerator } from "../utils/DescriptionGenerator"
 
@@ -85,7 +86,8 @@ export function createEventHook(
   sessionManager: SessionManager,
   csvWriter: CsvWriter,
   client: OpencodeClient,
-  ticketResolver: TicketResolver
+  ticketResolver: TicketResolver,
+  config: TimeTrackingConfig
 ) {
   return async ({ event }: { event: Event }): Promise<void> => {
     // Track model and agent from assistant messages
@@ -189,6 +191,17 @@ export function createEventHook(
 
       // Get agent name if available
       const agentString = session.agent?.name ?? null
+
+      // Check if agent should be ignored
+      if (agentString && config.ignored_agents?.includes(agentString)) {
+        await client.tui.showToast({
+          body: {
+            message: `Time tracking skipped for ${agentString} (ignored agent)`,
+            variant: "info",
+          },
+        })
+        return
+      }
 
       // Resolve ticket and account key with fallback hierarchy
       const resolved = await ticketResolver.resolve(sessionID, agentString)

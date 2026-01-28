@@ -69,7 +69,7 @@ export const plugin: Plugin = async ({
       sessionManager,
       ticketExtractor
     ),
-    event: createEventHook(sessionManager, csvWriter, client, ticketResolver),
+    event: createEventHook(sessionManager, csvWriter, client, ticketResolver, config),
   }
 
   return hooks
