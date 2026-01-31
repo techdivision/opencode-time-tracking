@@ -25,8 +25,14 @@ export interface TimeTrackingJsonConfig {
    */
   csv_file: string
 
-  /** Default Jira account key for time entries */
-  default_account_key: string
+  /**
+   * Global fallback ticket and account configuration.
+   *
+   * @remarks
+   * Required. Contains the default issue_key and account_key used when
+   * no ticket is found in context and no agent-specific default is configured.
+   */
+  global_default: GlobalDefaultConfig
 
   /**
    * Agent-specific default tickets.
@@ -36,15 +42,6 @@ export interface TimeTrackingJsonConfig {
    * default ticket configuration. Used when no ticket is found in context.
    */
   agent_defaults?: Record<string, AgentDefaultConfig>
-
-  /**
-   * Global fallback ticket configuration.
-   *
-   * @remarks
-   * Used when no ticket is found in context and no agent-specific
-   * default is configured.
-   */
-  global_default?: GlobalDefaultConfig
 
   /**
    * List of agent names to ignore for time tracking.

@@ -18,8 +18,7 @@ import type { TicketExtractor } from "./TicketExtractor"
  *
  * Account key fallback hierarchy:
  * 1. Agent-specific account_key
- * 2. Global default account_key
- * 3. default_account_key from config
+ * 2. Global default account_key (required)
  */
 export class TicketResolver {
   /** Plugin configuration */
@@ -101,12 +100,7 @@ export class TicketResolver {
       return this.config.agent_defaults[agentName].account_key!
     }
 
-    // 2. Global default account_key
-    if (this.config.global_default?.account_key) {
-      return this.config.global_default.account_key
-    }
-
-    // 3. Config default
-    return this.config.default_account_key
+    // 2. Global default account_key (required)
+    return this.config.global_default.account_key
   }
 }

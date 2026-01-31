@@ -19,10 +19,11 @@ export interface GlobalDefaultConfig {
   issue_key: string
 
   /**
-   * Optional Tempo Account Key.
+   * Default Tempo Account Key.
    *
    * @remarks
-   * If not set, falls back to `default_account_key`.
+   * Required. Used as the default account for all time entries
+   * unless overridden by agent-specific configuration.
    */
-  account_key?: string
+  account_key: string
 }
