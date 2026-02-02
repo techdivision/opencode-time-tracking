@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.1] - 2025-02-02
+
+### Fixed
+
+- Fix `ignored_agents` matching to accept agent names with or without `@` prefix
+- Both `"time-tracking"` and `"@time-tracking"` now work in configuration
+
 ## [0.6.0] - 2025-01-31
 
 ### Breaking Changes
