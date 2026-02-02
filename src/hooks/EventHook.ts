@@ -192,8 +192,13 @@ export function createEventHook(
       // Get agent name if available
       const agentString = session.agent?.name ?? null
 
-      // Check if agent should be ignored
-      if (agentString && config.ignored_agents?.includes(agentString)) {
+      // Check if agent should be ignored (tolerant matching: with or without @ prefix)
+      const normalizedAgent = agentString?.replace(/^@/, "")
+      const isIgnoredAgent = config.ignored_agents?.some(
+        (ignored) => ignored.replace(/^@/, "") === normalizedAgent
+      )
+
+      if (agentString && isIgnoredAgent) {
         await client.tui.showToast({
           body: {
             message: `Time tracking skipped for ${agentString} (ignored agent)`,
