@@ -33,7 +33,8 @@ src/
 │   ├── ConfigLoader.ts       # Load plugin configuration
 │   ├── CsvWriter.ts          # CSV file output
 │   ├── SessionManager.ts     # Session state management
-│   └── TicketExtractor.ts    # Extract tickets from messages/todos
+│   ├── TicketExtractor.ts    # Extract tickets from messages/todos
+│   └── TicketResolver.ts     # Resolve tickets with fallback hierarchy
 ├── types/                    # TypeScript interfaces (one per file)
 │   ├── ActivityData.ts
 │   ├── SessionData.ts
@@ -196,15 +197,21 @@ export default plugin
 
 ## Configuration
 
-Plugin config file: `.opencode/time-tracking.json`
+Plugin config file: `.opencode/opencode-project.json`
 
 ```json
 {
-  "csv_file": "~/worklogs/time.csv",
-  "user_email": "user@example.com",
-  "default_account_key": "ACCOUNT-1"
+  "time_tracking": {
+    "csv_file": "~/worklogs/time.csv",
+    "global_default": {
+      "issue_key": "PROJ-MISC",
+      "account_key": "ACCOUNT-1"
+    }
+  }
 }
 ```
+
+User email is resolved from `OPENCODE_USER_EMAIL` environment variable or system username.
 
 ## Git Workflow (Gitflow)
 
