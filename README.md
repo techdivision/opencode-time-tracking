@@ -100,6 +100,20 @@ Skip time tracking for specific agents:
 }
 ```
 
+#### Project Whitelist
+
+Restrict ticket detection to specific JIRA projects:
+
+```json
+{
+  "time_tracking": {
+    "csv_file": "...",
+    "global_default": { ... },
+    "valid_projects": ["PROJ", "SOSO", "FEAT"]
+  }
+}
+```
+
 ### Full Example
 
 ```json
@@ -120,10 +134,39 @@ Skip time tracking for specific agents:
         "issue_key": "PROJ-REVIEW"
       }
     },
-    "ignored_agents": ["@internal"]
+    "ignored_agents": ["@internal"],
+    "valid_projects": ["PROJ", "SOSO"]
   }
 }
 ```
+
+## Ticket Detection
+
+### Pattern
+
+By default, tickets must have at least 2 uppercase letters followed by a number:
+- Matches: `PROJ-123`, `SOSO-1`, `AB-99`
+- Does not match: `V-1`, `X-9` (single letter), `UTF-8` (common false positive)
+
+### Project Whitelist
+
+When `valid_projects` is configured, only tickets from those projects are recognized:
+
+```json
+{
+  "time_tracking": {
+    "valid_projects": ["PROJ", "SOSO", "FEAT"]
+  }
+}
+```
+
+With whitelist:
+- Matches: `PROJ-123`, `SOSO-1`, `FEAT-99`
+- Does not match: `UTF-8`, `ISO-9001`, `OTHER-123`
+
+Without whitelist (default):
+- Matches any pattern with 2+ uppercase letters: `PROJ-123`, `AB-1`
+- Does not match single-letter prefixes: `V-1`, `X-99`
 
 ## Fallback Hierarchy
 

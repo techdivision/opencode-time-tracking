@@ -51,6 +51,16 @@ export interface TimeTrackingJsonConfig {
    * Agent names should include the "@" prefix (e.g., "@internal").
    */
   ignored_agents?: string[]
+
+  /**
+   * Whitelist of valid JIRA project keys.
+   *
+   * @remarks
+   * If set, only tickets from these projects are recognized.
+   * If not set, any ticket matching the default pattern is accepted.
+   * Project keys should be uppercase with at least 2 letters (e.g., "PROJ", "SOSO").
+   */
+  valid_projects?: string[]
 }
 
 /**
