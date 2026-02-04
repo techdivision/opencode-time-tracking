@@ -7,10 +7,12 @@ import type { OpencodeClient } from "../types/OpencodeClient"
 import type { Todo } from "../types/Todo"
 
 /**
- * Regular expression pattern for Jira ticket references.
- * Matches patterns like "PROJ-123", "ABC-1", "FEATURE-9999".
+ * Default regular expression pattern for Jira ticket references.
+ * Requires at least 2 uppercase letters followed by a dash and digits.
+ * Matches patterns like "PROJ-123", "AB-1", "FEATURE-9999".
+ * Does not match single-letter prefixes like "V-1" or "X-99".
  */
-const TICKET_PATTERN = /([A-Z]+-\d+)/
+const DEFAULT_TICKET_PATTERN = /\b([A-Z]{2,}-\d+)\b/
 
 /**
  * Extracts Jira ticket references from user messages and todos.
@@ -22,18 +24,43 @@ const TICKET_PATTERN = /([A-Z]+-\d+)/
  *
  * Returns the first match found, allowing tickets to be updated
  * when mentioned in later messages.
+ *
+ * If `validProjects` is provided, only tickets from those projects
+ * are recognized. Otherwise, any ticket matching the default pattern
+ * (2+ uppercase letters) is accepted.
  */
 export class TicketExtractor {
   /** OpenCode SDK client */
   private client: OpencodeClient
 
+  /** Compiled regex pattern for ticket matching */
+  private ticketPattern: RegExp
+
   /**
    * Creates a new ticket extractor instance.
    *
    * @param client - The OpenCode SDK client
+   * @param validProjects - Optional whitelist of valid JIRA project keys
+   *
+   * @example
+   * ```typescript
+   * // Accept any ticket with 2+ letter prefix
+   * const extractor = new TicketExtractor(client)
+   *
+   * // Only accept PROJ and SOSO tickets
+   * const extractor = new TicketExtractor(client, ["PROJ", "SOSO"])
+   * ```
    */
-  constructor(client: OpencodeClient) {
+  constructor(client: OpencodeClient, validProjects?: string[]) {
     this.client = client
+
+    if (validProjects && validProjects.length > 0) {
+      // Build pattern that only matches specified projects
+      const projectsRegex = validProjects.join("|")
+      this.ticketPattern = new RegExp(`\\b((?:${projectsRegex})-\\d+)\\b`)
+    } else {
+      this.ticketPattern = DEFAULT_TICKET_PATTERN
+    }
   }
 
   /**
@@ -149,7 +176,7 @@ export class TicketExtractor {
    * @returns The first ticket match, or `null` if not found
    */
   private extractFromText(text: string): string | null {
-    const match = text.match(TICKET_PATTERN)
+    const match = text.match(this.ticketPattern)
 
     return match?.[1] ?? null
   }

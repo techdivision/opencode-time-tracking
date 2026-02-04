@@ -61,7 +61,7 @@ export const plugin: Plugin = async ({
 
   const sessionManager = new SessionManager()
   const csvWriter = new CsvWriter(config, directory)
-  const ticketExtractor = new TicketExtractor(client)
+  const ticketExtractor = new TicketExtractor(client, config.valid_projects)
   const ticketResolver = new TicketResolver(config, ticketExtractor)
 
   const hooks: Hooks = {
