@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.0] - 2025-02-04
+
+### Added
+
+- Add `valid_projects` configuration for JIRA project whitelist
+- Restrict ticket detection to specific projects when configured
+
+### Changed
+
+- Default ticket pattern now requires at least 2 uppercase letters
+- Matches: `PROJ-123`, `SOSO-1`, `AB-99`
+- Does not match: `V-1`, `X-9` (single letter), `UTF-8` (false positive)
+
 ## [0.6.1] - 2025-02-02
 
 ### Fixed
