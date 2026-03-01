@@ -6,6 +6,8 @@ import type { ResolvedTicketInfo } from "../types/ResolvedTicketInfo"
 import type { TimeTrackingConfig } from "../types/TimeTrackingConfig"
 import type { TicketExtractor } from "./TicketExtractor"
 
+import { AgentMatcher } from "../utils/AgentMatcher"
+
 /**
  * Resolves tickets and account keys using fallback hierarchy.
  *
@@ -65,11 +67,13 @@ export class TicketResolver {
       }
     }
 
-    // 2. Try agent default
-    if (agentName && this.config.agent_defaults?.[agentName]) {
+    // 2. Try agent default (tolerant matching: with or without @ prefix)
+    const agentKey = agentName ? this.findAgentKey(agentName) : null
+
+    if (agentKey) {
       return {
-        ticket: this.config.agent_defaults[agentName].issue_key,
-        accountKey: this.resolveAccountKey(agentName),
+        ticket: this.config.agent_defaults![agentKey].issue_key,
+        accountKey: this.resolveAccountKey(agentKey),
       }
     }
 
@@ -89,15 +93,40 @@ export class TicketResolver {
   }
 
   /**
+   * Finds the matching config key for an agent name.
+   *
+   * @param agentName - The agent name from the SDK
+   * @returns The matching config key, or `null` if not found
+   *
+   * @remarks
+   * Normalizes both the agent name and config keys to ensure
+   * matching works regardless of @ prefix.
+   */
+  private findAgentKey(agentName: string): string | null {
+    const defaults = this.config.agent_defaults
+
+    if (!defaults) {
+      return null
+    }
+
+    const normalized = AgentMatcher.normalize(agentName)
+    const key = Object.keys(defaults).find(
+      (k) => AgentMatcher.normalize(k) === normalized
+    )
+
+    return key ?? null
+  }
+
+  /**
    * Resolves account key using fallback hierarchy.
    *
-   * @param agentName - The agent name, or `null`
+   * @param agentKey - The agent config key, or `null`
    * @returns Resolved Tempo account key
    */
-  private resolveAccountKey(agentName: string | null): string {
+  private resolveAccountKey(agentKey: string | null): string {
     // 1. Agent-specific account_key
-    if (agentName && this.config.agent_defaults?.[agentName]?.account_key) {
-      return this.config.agent_defaults[agentName].account_key!
+    if (agentKey && this.config.agent_defaults?.[agentKey]?.account_key) {
+      return this.config.agent_defaults[agentKey].account_key!
     }
 
     // 2. Global default account_key (required)

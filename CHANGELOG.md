@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.1] - 2025-03-01
+
+### Fixed
+
+- Fix `agent_defaults` lookup to be tolerant of `@` prefix in agent names
+- Add `AgentMatcher` utility for consistent agent name normalization across the codebase
+
 ## [0.7.0] - 2025-02-04
 
 ### Added
