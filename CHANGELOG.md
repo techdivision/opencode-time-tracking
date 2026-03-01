@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.0] - 2025-03-01
+
+### Added
+
+- Add detailed token columns to CSV: `tokens_input`, `tokens_output`, `tokens_reasoning`, `tokens_cache_read`, `tokens_cache_write`
+- Add `cost` column to CSV tracking session cost in USD (from OpenCode SDK)
+- Add `CsvWriter.ensureHeader()` for automatic CSV header management at plugin startup
+
+### Fixed
+
+- Fix CSV header migration: automatically upgrade old 17-column files to 23-column format
+- Fix ticket extraction: skip synthetic text parts (file contents, MCP resources) to avoid false positives from example patterns in docs
+- Fix empty CSV files created without headers
+
+### Changed
+
+- CSV header is now validated and repaired at plugin startup, not on each write
+
 ## [0.7.1] - 2025-03-01
 
 ### Fixed
