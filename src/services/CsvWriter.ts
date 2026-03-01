@@ -38,6 +38,31 @@ function isHeaderLine(line: string): boolean {
 }
 
 /**
+ * Pads a CSV line with empty fields to match the expected column count.
+ *
+ * @param line - The CSV line to pad
+ * @param currentColumns - The current number of columns in the line
+ * @param targetColumns - The target number of columns
+ * @returns The padded line, or the original line if no padding needed
+ */
+function padCsvLine(
+  line: string,
+  currentColumns: number,
+  targetColumns: number
+): string {
+  if (currentColumns >= targetColumns) {
+    return line
+  }
+
+  const missingColumns = targetColumns - currentColumns
+  const padding = ',""\n'.repeat(missingColumns).slice(0, -1) // Remove trailing newline, keep commas
+  const emptyFields = Array(missingColumns).fill('""').join(",")
+
+  // Append empty fields to the line
+  return line + "," + emptyFields
+}
+
+/**
  * Writes time tracking entries to a CSV file.
  *
  * @remarks
@@ -86,16 +111,17 @@ export class CsvWriter {
   }
 
   /**
-   * Ensures the CSV file exists and has a valid header.
+   * Ensures the CSV file exists and has a valid, up-to-date header.
    *
    * @remarks
    * Call this once at plugin startup. Handles these cases:
    * - File doesn't exist: creates it with header
    * - File is empty: writes header
-   * - File has data but no header: prepends header (if column count matches known formats)
-   * - File already has header: no action needed
+   * - File has data but no header: prepends header and pads rows if needed
+   * - File has outdated header (fewer columns): replaces header and pads all rows
+   * - File already has current header: no action needed
    *
-   * @returns `true` if header was added/created, `false` if already valid
+   * @returns `true` if file was modified, `false` if already valid
    */
   async ensureHeader(): Promise<boolean> {
     const csvPath = this.resolvePath()
@@ -124,24 +150,45 @@ export class CsvWriter {
       return true
     }
 
-    const firstLine = trimmedContent.split("\n")[0]
+    const lines = trimmedContent.split("\n")
+    const firstLine = lines[0]
+    const hasHeader = isHeaderLine(firstLine)
 
-    if (isHeaderLine(firstLine)) {
-      // Already has header
+    // Determine column count from first data line
+    const dataLineIndex = hasHeader ? 1 : 0
+    if (dataLineIndex >= lines.length) {
+      // Only header, no data - ensure header is current
+      if (hasHeader && CsvFormatter.countColumns(firstLine) < CSV_COLUMN_COUNT) {
+        await Bun.write(csvPath, CSV_HEADER + "\n")
+        return true
+      }
       return false
     }
 
-    // File has data but no header - check if structure is compatible
-    const columnCount = CsvFormatter.countColumns(firstLine)
+    const firstDataLine = lines[dataLineIndex]
+    const columnCount = CsvFormatter.countColumns(firstDataLine)
 
-    if (columnCount > 0 && columnCount <= CSV_COLUMN_COUNT) {
-      // Column count is within expected range - prepend header
-      await Bun.write(csvPath, CSV_HEADER + "\n" + trimmedContent + "\n")
-      return true
+    // Check if migration is needed
+    if (columnCount >= CSV_COLUMN_COUNT) {
+      // Already has enough columns
+      if (!hasHeader) {
+        // Just prepend header
+        await Bun.write(csvPath, CSV_HEADER + "\n" + trimmedContent + "\n")
+        return true
+      }
+      return false
     }
 
-    // More columns than expected - unknown format, don't modify
-    return false
+    // Migration needed: pad all data rows to CSV_COLUMN_COUNT
+    const dataLines = hasHeader ? lines.slice(1) : lines
+    const paddedLines = dataLines.map((line) => {
+      const lineColumnCount = CsvFormatter.countColumns(line)
+      return padCsvLine(line, lineColumnCount, CSV_COLUMN_COUNT)
+    })
+
+    // Write new header + padded data
+    await Bun.write(csvPath, CSV_HEADER + "\n" + paddedLines.join("\n") + "\n")
+    return true
   }
 
   /**
