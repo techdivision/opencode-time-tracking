@@ -140,6 +140,11 @@ export function createEventHook(
           cacheRead: part.tokens.cache.read,
           cacheWrite: part.tokens.cache.write,
         })
+
+        // Track cost from step-finish events
+        if (part.cost !== undefined) {
+          sessionManager.addCost(part.sessionID, part.cost)
+        }
       }
 
       return
@@ -224,6 +229,7 @@ export function createEventHook(
           description,
           notes: `Auto-tracked: ${toolSummary}`,
           tokenUsage: session.tokenUsage,
+          cost: session.cost,
           model: modelString,
           agent: agentString,
         })

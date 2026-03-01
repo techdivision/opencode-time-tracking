@@ -16,6 +16,9 @@ export interface StepFinishPart {
   /** The session this part belongs to */
   sessionID: string
 
+  /** Cost in USD for this step */
+  cost: number
+
   /** Token usage for this step */
   tokens: {
     /** Input tokens consumed */
