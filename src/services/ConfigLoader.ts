@@ -61,7 +61,7 @@ async function loadEnvValue(
  *
  * The `user_email` is resolved from (in order of priority):
  * 1. `OPENCODE_USER_EMAIL` system environment variable
- * 2. `OPENCODE_USER_EMAIL` from project `.env` file
+ * 2. `OPENCODE_USER_EMAIL` from `.opencode/.env` file
  * 3. System username (fallback)
  */
 export class ConfigLoader {
@@ -94,9 +94,9 @@ export class ConfigLoader {
 
           // Resolve user_email with fallback chain:
           // 1. System environment variable
-          // 2. Project .env file
+          // 2. .opencode/.env file
           // 3. System username
-          const envValue = await loadEnvValue(directory, ENV_USER_EMAIL)
+          const envValue = await loadEnvValue(`${directory}/.opencode`, ENV_USER_EMAIL)
           const userEmail =
             process.env[ENV_USER_EMAIL] || envValue || userInfo().username
 
