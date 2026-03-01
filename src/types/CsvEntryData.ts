@@ -29,6 +29,9 @@ export interface CsvEntryData {
   /** Token consumption statistics */
   tokenUsage: TokenUsage
 
+  /** Total cost in USD */
+  cost: number
+
   /**
    * Model identifier in format `providerID/modelID`.
    *

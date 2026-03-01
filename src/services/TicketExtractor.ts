@@ -116,7 +116,9 @@ export class TicketExtractor {
         }
 
         for (const part of message.parts) {
-          if (part.type === "text" && part.text) {
+          // Skip synthetic parts (file contents, MCP resources, etc.)
+          // These may contain example ticket patterns from docs
+          if (part.type === "text" && part.text && !part.synthetic) {
             const ticket = this.extractFromText(part.text)
 
             if (ticket) {

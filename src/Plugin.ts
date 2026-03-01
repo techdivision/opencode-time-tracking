@@ -64,6 +64,9 @@ export const plugin: Plugin = async ({
   const ticketExtractor = new TicketExtractor(client, config.valid_projects)
   const ticketResolver = new TicketResolver(config, ticketExtractor)
 
+  // Ensure CSV file has a valid header at startup
+  await csvWriter.ensureHeader()
+
   const hooks: Hooks = {
     "tool.execute.after": createToolExecuteAfterHook(
       sessionManager,

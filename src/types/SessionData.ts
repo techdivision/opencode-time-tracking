@@ -23,6 +23,9 @@ export interface SessionData {
   /** Cumulative token usage for the session */
   tokenUsage: TokenUsage
 
+  /** Cumulative cost in USD for the session */
+  cost: number
+
   /** Model used in this session, or `null` if not detected */
   model: ModelInfo | null
 

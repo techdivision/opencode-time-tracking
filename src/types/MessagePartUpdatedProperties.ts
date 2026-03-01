@@ -16,6 +16,9 @@ export interface MessagePartUpdatedProperties {
     /** Session ID (present on step-finish and agent parts) */
     sessionID?: string
 
+    /** Cost in USD (present on step-finish parts) */
+    cost?: number
+
     /** Token usage (present on step-finish parts) */
     tokens?: StepFinishPart["tokens"]
 
