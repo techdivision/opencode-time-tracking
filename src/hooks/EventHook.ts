@@ -12,6 +12,7 @@ import type { MessageWithParts } from "../types/MessageWithParts"
 import type { OpencodeClient } from "../types/OpencodeClient"
 import type { TimeTrackingConfig } from "../types/TimeTrackingConfig"
 
+import { AgentMatcher } from "../utils/AgentMatcher"
 import { DescriptionGenerator } from "../utils/DescriptionGenerator"
 
 /**
@@ -193,9 +194,11 @@ export function createEventHook(
       const agentString = session.agent?.name ?? null
 
       // Check if agent should be ignored (tolerant matching: with or without @ prefix)
-      const normalizedAgent = agentString?.replace(/^@/, "")
+      const normalizedAgent = agentString
+        ? AgentMatcher.normalize(agentString)
+        : null
       const isIgnoredAgent = config.ignored_agents?.some(
-        (ignored) => ignored.replace(/^@/, "") === normalizedAgent
+        (ignored) => AgentMatcher.normalize(ignored) === normalizedAgent
       )
 
       if (agentString && isIgnoredAgent) {
