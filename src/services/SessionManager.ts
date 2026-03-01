@@ -63,6 +63,7 @@ export class SessionManager {
         cacheRead: 0,
         cacheWrite: 0,
       },
+      cost: 0,
       model: null,
       agent: null,
     }
@@ -131,6 +132,20 @@ export class SessionManager {
       session.tokenUsage.reasoning += tokens.reasoning
       session.tokenUsage.cacheRead += tokens.cacheRead
       session.tokenUsage.cacheWrite += tokens.cacheWrite
+    }
+  }
+
+  /**
+   * Adds cost to a session's cumulative total.
+   *
+   * @param sessionID - The OpenCode session identifier
+   * @param cost - The cost in USD to add
+   */
+  addCost(sessionID: string, cost: number): void {
+    const session = this.sessions.get(sessionID)
+
+    if (session) {
+      session.cost += cost
     }
   }
 

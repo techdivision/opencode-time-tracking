@@ -16,9 +16,26 @@ import "../types/Bun"
 /**
  * CSV header row for the worklog export file.
  * Compatible with Jira/Tempo time tracking import.
+ *
+ * @remarks
+ * Columns 1-17: Original format (v0.5.0 - v0.7.x)
+ * Columns 18-23: Extended format (v0.8.0+) with token details and cost
  */
 const CSV_HEADER =
-  "id,start_date,end_date,user,ticket_name,issue_key,account_key,start_time,end_time,duration_seconds,tokens_used,tokens_remaining,story_points,description,notes,model,agent"
+  "id,start_date,end_date,user,ticket_name,issue_key,account_key,start_time,end_time,duration_seconds,tokens_used,tokens_remaining,story_points,description,notes,model,agent,tokens_input,tokens_output,tokens_reasoning,tokens_cache_read,tokens_cache_write,cost"
+
+/** Number of columns in the current CSV format */
+const CSV_COLUMN_COUNT = 23
+
+/**
+ * Checks if a line is a CSV header row.
+ *
+ * @param line - The line to check
+ * @returns `true` if the line appears to be a header
+ */
+function isHeaderLine(line: string): boolean {
+  return line.startsWith('"id"') || line.startsWith("id,")
+}
 
 /**
  * Writes time tracking entries to a CSV file.
@@ -69,14 +86,72 @@ export class CsvWriter {
   }
 
   /**
+   * Ensures the CSV file exists and has a valid header.
+   *
+   * @remarks
+   * Call this once at plugin startup. Handles these cases:
+   * - File doesn't exist: creates it with header
+   * - File is empty: writes header
+   * - File has data but no header: prepends header (if column count matches known formats)
+   * - File already has header: no action needed
+   *
+   * @returns `true` if header was added/created, `false` if already valid
+   */
+  async ensureHeader(): Promise<boolean> {
+    const csvPath = this.resolvePath()
+
+    try {
+      await mkdir(dirname(csvPath), { recursive: true })
+    } catch {
+      // Directory may already exist
+    }
+
+    const file = Bun.file(csvPath)
+    const exists = await file.exists()
+
+    if (!exists) {
+      // Create new file with header
+      await Bun.write(csvPath, CSV_HEADER + "\n")
+      return true
+    }
+
+    const content = await file.text()
+    const trimmedContent = content.trim()
+
+    if (trimmedContent.length === 0) {
+      // Empty file: write header
+      await Bun.write(csvPath, CSV_HEADER + "\n")
+      return true
+    }
+
+    const firstLine = trimmedContent.split("\n")[0]
+
+    if (isHeaderLine(firstLine)) {
+      // Already has header
+      return false
+    }
+
+    // File has data but no header - check if structure is compatible
+    const columnCount = CsvFormatter.countColumns(firstLine)
+
+    if (columnCount > 0 && columnCount <= CSV_COLUMN_COUNT) {
+      // Column count is within expected range - prepend header
+      await Bun.write(csvPath, CSV_HEADER + "\n" + trimmedContent + "\n")
+      return true
+    }
+
+    // More columns than expected - unknown format, don't modify
+    return false
+  }
+
+  /**
    * Writes a time tracking entry to the CSV file.
    *
    * @param data - The entry data to write
    *
    * @remarks
-   * Creates the CSV file with headers if it doesn't exist.
-   * Appends to existing file if it exists.
-   * Creates parent directories as needed.
+   * Assumes `ensureHeader()` was called at startup.
+   * Simply appends the new entry to the file.
    *
    * @example
    * ```typescript
@@ -87,19 +162,13 @@ export class CsvWriter {
    *   durationSeconds: 3600,
    *   description: "Implemented feature X",
    *   notes: "Auto-tracked: read(5x), edit(3x)",
-   *   tokenUsage: { input: 1000, output: 500, reasoning: 0, cacheRead: 0, cacheWrite: 0 }
+   *   tokenUsage: { input: 1000, output: 500, reasoning: 0, cacheRead: 0, cacheWrite: 0 },
+   *   cost: 0.0234
    * })
    * ```
    */
   async write(data: CsvEntryData): Promise<void> {
     const csvPath = this.resolvePath()
-
-    try {
-      await mkdir(dirname(csvPath), { recursive: true })
-    } catch {
-      // Directory may already exist
-    }
-
     const file = Bun.file(csvPath)
     const exists = await file.exists()
 
@@ -124,11 +193,19 @@ export class CsvWriter {
       CsvFormatter.escape(data.notes),
       data.model ?? "",
       data.agent ?? "",
+      // Extended columns (v0.8.0+)
+      data.tokenUsage.input.toString(),
+      data.tokenUsage.output.toString(),
+      data.tokenUsage.reasoning.toString(),
+      data.tokenUsage.cacheRead.toString(),
+      data.tokenUsage.cacheWrite.toString(),
+      data.cost.toFixed(6),
     ]
 
     const csvLine = fields.map((f) => `"${f}"`).join(",")
 
     if (!exists) {
+      // Fallback: create file with header if ensureHeader() wasn't called
       await Bun.write(csvPath, CSV_HEADER + "\n" + csvLine + "\n")
     } else {
       const content = await file.text()

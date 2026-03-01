@@ -54,4 +54,31 @@ export class CsvFormatter {
   static formatTime(timestamp: number): string {
     return new Date(timestamp).toTimeString().split(" ")[0]
   }
+
+  /**
+   * Counts the number of columns in a CSV line.
+   *
+   * @param csvLine - A single line from a CSV file (with quoted fields)
+   * @returns The number of columns
+   *
+   * @remarks
+   * Handles quoted fields correctly by counting occurrences of `","` pattern.
+   * Assumes all fields are double-quoted as our CSV writer produces.
+   *
+   * @example
+   * ```typescript
+   * CsvFormatter.countColumns('"a","b","c"')  // Returns: 3
+   * CsvFormatter.countColumns('"single"')     // Returns: 1
+   * ```
+   */
+  static countColumns(csvLine: string): number {
+    if (!csvLine || csvLine.trim().length === 0) {
+      return 0
+    }
+
+    // Count occurrences of "," which separates quoted fields
+    // Add 1 because n separators means n+1 fields
+    const matches = csvLine.match(/","/g)
+    return matches ? matches.length + 1 : 1
+  }
 }
