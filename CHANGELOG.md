@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.1] - 2025-03-01
+
+### Fixed
+
+- Fix `user_email` resolution to read from `.opencode/.env` instead of project root `.env`
+- Previously fell back to system username when `.env` was not found in project root
+
 ## [0.8.0] - 2025-03-01
 
 ### Added
